@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+asocampo.db
+backend/.env
+backend/.venv/
+backend/__pycache__/
+backend/app/__pycache__/
