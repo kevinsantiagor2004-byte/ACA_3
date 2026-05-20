@@ -52,6 +52,7 @@ function App() {
   const [accessMode, setAccessMode] = useState("register");
   const [activeProducerId, setActiveProducerId] = useState("");
   const [activeBuyerId, setActiveBuyerId] = useState("");
+  const [currentView, setCurrentView] = useState("landing");
   const [message, setMessage] = useState("");
 
   const activeProducer = producers.find((producer) => String(producer.id) === String(activeProducerId));
@@ -201,6 +202,7 @@ function App() {
     setMessage("");
     setTraceability(null);
     setAccessMode("access");
+    setCurrentView("auth");
   }
 
   function logout() {
@@ -208,209 +210,288 @@ function App() {
     setActiveBuyerId("");
     setTraceability(null);
     setAccessMode("register");
+    setCurrentView("landing");
     setMessage("Sesion cerrada.");
+  }
+
+  function enterPortal() {
+    if (activeRole === "producer" && activeProducerId) {
+      setCurrentView("portal");
+    }
+    if (activeRole === "buyer" && activeBuyerId) {
+      setCurrentView("portal");
+    }
   }
 
   return (
     <div className="page-shell">
-      <header className="hero hero-split">
-        <div className="hero-copy">
-          <p className="eyebrow">ACA 3 | Demo funcional</p>
-          <h1>Una plataforma, dos portales y una cadena comercial mas corta.</h1>
-          <p className="hero-text">
-            Asocampo separa la experiencia del productor y del comprador para que cada actor vea
-            solo las acciones que necesita: publicar oferta, reservar cosecha, seguir pedidos y
-            tomar decisiones con informacion visible.
-          </p>
-          <div className="hero-pills">
-            <span>React + FastAPI</span>
-            <span>PostgreSQL + Neon</span>
-            <span>Deploy publico en Vercel</span>
-          </div>
-        </div>
-
-        <div className="access-panel">
-          <div className="role-tabs">
-            <button
-              className={activeRole === "producer" ? "active" : ""}
-              onClick={() => switchRole("producer")}
-              type="button"
-            >
-              Portal productor
-            </button>
-            <button
-              className={activeRole === "buyer" ? "active" : ""}
-              onClick={() => switchRole("buyer")}
-              type="button"
-            >
-              Portal comprador
-            </button>
-          </div>
-
-          <div className="access-toggle">
-            <button
-              className={accessMode === "register" ? "active" : ""}
-              onClick={() => setAccessMode("register")}
-              type="button"
-            >
-              Registrarse
-            </button>
-            <button
-              className={accessMode === "access" ? "active" : ""}
-              onClick={() => setAccessMode("access")}
-              type="button"
-            >
-              Ingresar
-            </button>
-          </div>
-
-          {accessMode === "register" && activeRole === "producer" ? (
-            <form className="form-grid compact" onSubmit={handleProducerRegistration}>
-              <h2>Crear cuenta de productor</h2>
-              <input
-                placeholder="Nombre del productor"
-                value={producerForm.name}
-                onChange={(event) => setProducerForm({ ...producerForm, name: event.target.value })}
-                required
-              />
-              <input
-                placeholder="Telefono"
-                value={producerForm.phone}
-                onChange={(event) => setProducerForm({ ...producerForm, phone: event.target.value })}
-                required
-              />
-              <input
-                placeholder="Municipio"
-                value={producerForm.municipality}
-                onChange={(event) =>
-                  setProducerForm({ ...producerForm, municipality: event.target.value })
-                }
-                required
-              />
-              <input
-                placeholder="Tipo de cultivo"
-                value={producerForm.crop_type}
-                onChange={(event) =>
-                  setProducerForm({ ...producerForm, crop_type: event.target.value })
-                }
-                required
-              />
-              <input
-                placeholder="Tamano de parcela (ha)"
-                type="number"
-                step="0.1"
-                value={producerForm.parcel_size_hectares}
-                onChange={(event) =>
-                  setProducerForm({
-                    ...producerForm,
-                    parcel_size_hectares: event.target.value,
-                  })
-                }
-                required
-              />
-              <select
-                value={producerForm.notification_channel}
-                onChange={(event) =>
-                  setProducerForm({ ...producerForm, notification_channel: event.target.value })
-                }
-              >
-                <option value="SMS">SMS</option>
-                <option value="PUSH">Push</option>
-                <option value="BOTH">Ambos</option>
-              </select>
-              <button type="submit">Crear acceso productor</button>
-            </form>
-          ) : null}
-
-          {accessMode === "register" && activeRole === "buyer" ? (
-            <form className="form-grid compact" onSubmit={handleBuyerRegistration}>
-              <h2>Crear cuenta de comprador</h2>
-              <input
-                placeholder="Empresa compradora"
-                value={buyerForm.company_name}
-                onChange={(event) => setBuyerForm({ ...buyerForm, company_name: event.target.value })}
-                required
-              />
-              <input
-                placeholder="Contacto"
-                value={buyerForm.contact_name}
-                onChange={(event) => setBuyerForm({ ...buyerForm, contact_name: event.target.value })}
-                required
-              />
-              <input
-                placeholder="Zona logistica"
-                value={buyerForm.zone}
-                onChange={(event) => setBuyerForm({ ...buyerForm, zone: event.target.value })}
-                required
-              />
-              <input
-                placeholder="Demanda esperada (kg)"
-                type="number"
-                value={buyerForm.expected_demand_kg}
-                onChange={(event) =>
-                  setBuyerForm({ ...buyerForm, expected_demand_kg: event.target.value })
-                }
-                required
-              />
-              <button type="submit">Crear acceso comprador</button>
-            </form>
-          ) : null}
-
-          {accessMode === "access" && activeRole === "producer" ? (
-            <div className="access-card">
-              <h2>Ingresar como productor</h2>
-              <p>Selecciona un productor ya registrado para entrar a su panel.</p>
-              <select
-                value={activeProducerId}
-                onChange={(event) => {
-                  setActiveProducerId(event.target.value);
-                  setOfferForm({ ...initialOffer, producer_id: event.target.value });
-                }}
-              >
-                <option value="">Seleccione productor</option>
-                {producers.map((producer) => (
-                  <option key={producer.id} value={producer.id}>
-                    {producer.name} | {producer.municipality}
-                  </option>
-                ))}
-              </select>
-              {activeProducer ? (
-                <div className="session-chip">
-                  <strong>{activeProducer.name}</strong>
-                  <span>{activeProducer.crop_type} | {activeProducer.municipality}</span>
-                </div>
-              ) : null}
+      {currentView === "landing" ? (
+        <section className="landing-shell">
+          <div className="landing-backdrop" />
+          <div className="landing-grid">
+            <div className="landing-copy">
+              <p className="eyebrow">ACA 3 | Plataforma agro-logistica</p>
+              <h1>Del cultivo al mercado, con una experiencia digital para cada actor.</h1>
+              <p className="hero-text">
+                Asocampo integra el mundo rural y el comercial en dos portales diferenciados.
+                El productor publica y sigue su cosecha. El comprador compara, reserva y planifica
+                abastecimiento con trazabilidad.
+              </p>
+              <div className="hero-pills">
+                <span>Portal productor</span>
+                <span>Portal comprador</span>
+                <span>Una sola plataforma publica</span>
+              </div>
             </div>
-          ) : null}
 
-          {accessMode === "access" && activeRole === "buyer" ? (
-            <div className="access-card">
-              <h2>Ingresar como comprador</h2>
-              <p>Selecciona una empresa compradora para entrar al panel comercial.</p>
-              <select
-                value={activeBuyerId}
-                onChange={(event) => {
-                  setActiveBuyerId(event.target.value);
-                  setPreorderForm({ ...initialPreorder, buyer_id: event.target.value });
-                }}
-              >
-                <option value="">Seleccione comprador</option>
-                {buyers.map((buyer) => (
-                  <option key={buyer.id} value={buyer.id}>
-                    {buyer.company_name} | {buyer.zone}
-                  </option>
-                ))}
-              </select>
-              {activeBuyer ? (
-                <div className="session-chip">
-                  <strong>{activeBuyer.company_name}</strong>
-                  <span>{activeBuyer.contact_name} | Demanda {activeBuyer.expected_demand_kg} kg</span>
+            <div className="landing-visual-card">
+              <div className="photo-stack">
+                <div className="photo-card large">
+                  <img
+                    src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1200&q=80"
+                    alt="Cultivo en el campo"
+                  />
                 </div>
-              ) : null}
+                <div className="photo-card small top">
+                  <img
+                    src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=900&q=80"
+                    alt="Agricultor en cosecha"
+                  />
+                </div>
+                <div className="photo-card small bottom">
+                  <img
+                    src="https://images.unsplash.com/photo-1471193945509-9ad0617afabf?auto=format&fit=crop&w=900&q=80"
+                    alt="Paisaje agricola"
+                  />
+                </div>
+              </div>
+              <div className="visual-caption">
+                <strong>Cadena corta, decisiones mas rapidas.</strong>
+                <span>Informacion de precios, oferta visible y trazabilidad desde una interfaz envolvente.</span>
+              </div>
             </div>
-          ) : null}
-        </div>
-      </header>
+          </div>
+
+          <div className="landing-actions">
+            <button type="button" onClick={() => switchRole("producer")}>
+              Ingresar como productor
+            </button>
+            <button type="button" className="ghost-button" onClick={() => switchRole("buyer")}>
+              Ingresar como comprador
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      {currentView === "auth" ? (
+        <section className="auth-shell">
+          <div className="auth-aside">
+            <button className="back-link" onClick={() => setCurrentView("landing")} type="button">
+              Volver al inicio
+            </button>
+            <p className="eyebrow">Acceso por rol</p>
+            <h2>
+              {activeRole === "producer"
+                ? "Bienvenido al portal productor"
+                : "Bienvenido al portal comprador"}
+            </h2>
+            <p>
+              {activeRole === "producer"
+                ? "Registra tu perfil o ingresa con un productor ya creado para publicar oferta y seguir trazabilidad."
+                : "Registra tu empresa o ingresa con un comprador existente para reservar cosechas y consultar mercado."}
+            </p>
+            <div className="auth-photo">
+              <img
+                src={
+                  activeRole === "producer"
+                    ? "https://images.unsplash.com/photo-1499529112087-3cb3b73cec95?auto=format&fit=crop&w=1200&q=80"
+                    : "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80"
+                }
+                alt={activeRole === "producer" ? "Productor rural" : "Comprador de alimentos"}
+              />
+            </div>
+          </div>
+
+          <div className="access-panel auth-panel">
+            <div className="role-tabs">
+              <button
+                className={activeRole === "producer" ? "active" : ""}
+                onClick={() => setActiveRole("producer")}
+                type="button"
+              >
+                Productor
+              </button>
+              <button
+                className={activeRole === "buyer" ? "active" : ""}
+                onClick={() => setActiveRole("buyer")}
+                type="button"
+              >
+                Comprador
+              </button>
+            </div>
+
+            <div className="access-toggle">
+              <button
+                className={accessMode === "register" ? "active" : ""}
+                onClick={() => setAccessMode("register")}
+                type="button"
+              >
+                Crear cuenta
+              </button>
+              <button
+                className={accessMode === "access" ? "active" : ""}
+                onClick={() => setAccessMode("access")}
+                type="button"
+              >
+                Iniciar sesion
+              </button>
+            </div>
+
+            {accessMode === "register" && activeRole === "producer" ? (
+              <form className="form-grid compact" onSubmit={handleProducerRegistration}>
+                <h2>Registrar productor</h2>
+                <input
+                  placeholder="Nombre del productor"
+                  value={producerForm.name}
+                  onChange={(event) => setProducerForm({ ...producerForm, name: event.target.value })}
+                  required
+                />
+                <input
+                  placeholder="Telefono"
+                  value={producerForm.phone}
+                  onChange={(event) => setProducerForm({ ...producerForm, phone: event.target.value })}
+                  required
+                />
+                <input
+                  placeholder="Municipio"
+                  value={producerForm.municipality}
+                  onChange={(event) => setProducerForm({ ...producerForm, municipality: event.target.value })}
+                  required
+                />
+                <input
+                  placeholder="Tipo de cultivo"
+                  value={producerForm.crop_type}
+                  onChange={(event) => setProducerForm({ ...producerForm, crop_type: event.target.value })}
+                  required
+                />
+                <input
+                  placeholder="Tamano de parcela (ha)"
+                  type="number"
+                  step="0.1"
+                  value={producerForm.parcel_size_hectares}
+                  onChange={(event) =>
+                    setProducerForm({ ...producerForm, parcel_size_hectares: event.target.value })
+                  }
+                  required
+                />
+                <select
+                  value={producerForm.notification_channel}
+                  onChange={(event) =>
+                    setProducerForm({ ...producerForm, notification_channel: event.target.value })
+                  }
+                >
+                  <option value="SMS">SMS</option>
+                  <option value="PUSH">Push</option>
+                  <option value="BOTH">Ambos</option>
+                </select>
+                <button type="submit">Crear cuenta y entrar</button>
+              </form>
+            ) : null}
+
+            {accessMode === "register" && activeRole === "buyer" ? (
+              <form className="form-grid compact" onSubmit={handleBuyerRegistration}>
+                <h2>Registrar comprador</h2>
+                <input
+                  placeholder="Empresa compradora"
+                  value={buyerForm.company_name}
+                  onChange={(event) => setBuyerForm({ ...buyerForm, company_name: event.target.value })}
+                  required
+                />
+                <input
+                  placeholder="Contacto"
+                  value={buyerForm.contact_name}
+                  onChange={(event) => setBuyerForm({ ...buyerForm, contact_name: event.target.value })}
+                  required
+                />
+                <input
+                  placeholder="Zona logistica"
+                  value={buyerForm.zone}
+                  onChange={(event) => setBuyerForm({ ...buyerForm, zone: event.target.value })}
+                  required
+                />
+                <input
+                  placeholder="Demanda esperada (kg)"
+                  type="number"
+                  value={buyerForm.expected_demand_kg}
+                  onChange={(event) => setBuyerForm({ ...buyerForm, expected_demand_kg: event.target.value })}
+                  required
+                />
+                <button type="submit">Crear cuenta y entrar</button>
+              </form>
+            ) : null}
+
+            {accessMode === "access" && activeRole === "producer" ? (
+              <div className="access-card">
+                <h2>Iniciar sesion productor</h2>
+                <p>Selecciona el productor para abrir su interfaz personalizada.</p>
+                <select
+                  value={activeProducerId}
+                  onChange={(event) => {
+                    setActiveProducerId(event.target.value);
+                    setOfferForm({ ...initialOffer, producer_id: event.target.value });
+                  }}
+                >
+                  <option value="">Seleccione productor</option>
+                  {producers.map((producer) => (
+                    <option key={producer.id} value={producer.id}>
+                      {producer.name} | {producer.municipality}
+                    </option>
+                  ))}
+                </select>
+                {activeProducer ? (
+                  <div className="session-chip">
+                    <strong>{activeProducer.name}</strong>
+                    <span>{activeProducer.crop_type} | {activeProducer.municipality}</span>
+                  </div>
+                ) : null}
+                <button type="button" onClick={enterPortal} disabled={!activeProducerId}>
+                  Entrar al portal productor
+                </button>
+              </div>
+            ) : null}
+
+            {accessMode === "access" && activeRole === "buyer" ? (
+              <div className="access-card">
+                <h2>Iniciar sesion comprador</h2>
+                <p>Selecciona la empresa compradora para abrir su panel comercial.</p>
+                <select
+                  value={activeBuyerId}
+                  onChange={(event) => {
+                    setActiveBuyerId(event.target.value);
+                    setPreorderForm({ ...initialPreorder, buyer_id: event.target.value });
+                  }}
+                >
+                  <option value="">Seleccione comprador</option>
+                  {buyers.map((buyer) => (
+                    <option key={buyer.id} value={buyer.id}>
+                      {buyer.company_name} | {buyer.zone}
+                    </option>
+                  ))}
+                </select>
+                {activeBuyer ? (
+                  <div className="session-chip">
+                    <strong>{activeBuyer.company_name}</strong>
+                    <span>{activeBuyer.contact_name} | Demanda {activeBuyer.expected_demand_kg} kg</span>
+                  </div>
+                ) : null}
+                <button type="button" onClick={enterPortal} disabled={!activeBuyerId}>
+                  Entrar al portal comprador
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
 
       {message ? <div className="banner">{message}</div> : null}
 
@@ -436,7 +517,7 @@ function App() {
         ))}
       </section>
 
-      {loggedIn ? (
+      {currentView === "portal" && loggedIn ? (
         <section className="workspace-header">
           <div>
             <p className="eyebrow">Sesion activa</p>
@@ -455,17 +536,9 @@ function App() {
             Cerrar sesion
           </button>
         </section>
-      ) : (
-        <section className="workspace-header locked">
-          <div>
-            <p className="eyebrow">Acceso requerido</p>
-            <h2>Registra o selecciona un perfil para habilitar las herramientas del portal.</h2>
-            <p>La navegacion operativa de productor y comprador se activa unicamente despues del acceso.</p>
-          </div>
-        </section>
-      )}
+      ) : null}
 
-      {loggedIn && activeRole === "producer" ? (
+      {currentView === "portal" && loggedIn && activeRole === "producer" ? (
         <main className="content-grid producer-layout">
           <section className="panel spotlight-panel">
             <div className="panel-heading">
@@ -580,7 +653,7 @@ function App() {
         </main>
       ) : null}
 
-      {loggedIn && activeRole === "buyer" ? (
+      {currentView === "portal" && loggedIn && activeRole === "buyer" ? (
         <main className="content-grid buyer-layout">
           <section className="panel spotlight-panel">
             <div className="panel-heading">
@@ -725,17 +798,19 @@ function App() {
         </main>
       ) : null}
 
-      <section className="evaluation-strip">
-        <article>
-          <h2>Matriz de evaluacion sugerida</h2>
-          <p>Variable: margen de intermediacion | Indicador: variacion del precio pactado frente al precio de referencia.</p>
-          <p>Metodo: registro del sistema + consulta de precios | Resultado esperado: reducir intermediacion y mejorar ingreso del productor.</p>
-        </article>
-        <article>
-          <h2>Aplicacion de ingenieria</h2>
-          <p>Entradas: productores, cultivos, precios, demanda. Procesos: registro, comparacion, preventa, trazabilidad. Salidas: orden, ruta, reporte e indicadores.</p>
-        </article>
-      </section>
+      {currentView === "portal" ? (
+        <section className="evaluation-strip">
+          <article>
+            <h2>Matriz de evaluacion sugerida</h2>
+            <p>Variable: margen de intermediacion | Indicador: variacion del precio pactado frente al precio de referencia.</p>
+            <p>Metodo: registro del sistema + consulta de precios | Resultado esperado: reducir intermediacion y mejorar ingreso del productor.</p>
+          </article>
+          <article>
+            <h2>Aplicacion de ingenieria</h2>
+            <p>Entradas: productores, cultivos, precios, demanda. Procesos: registro, comparacion, preventa, trazabilidad. Salidas: orden, ruta, reporte e indicadores.</p>
+          </article>
+        </section>
+      ) : null}
     </div>
   );
 }
