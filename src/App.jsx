@@ -61,6 +61,30 @@ function App() {
   const buyerPreorders = preorders.filter((preorder) => String(preorder.buyer_id) === String(activeBuyerId));
   const loggedIn = activeRole === "producer" ? Boolean(activeProducerId) : Boolean(activeBuyerId);
 
+  const metricCards = [
+    { label: "Productores activos", value: dashboard?.total_producers ?? "--", icon: "Semilla", accent: "green" },
+    { label: "Ofertas publicadas", value: dashboard?.active_offers ?? "--", icon: "Canasta", accent: "gold" },
+    { label: "Preventas", value: dashboard?.total_preorders ?? "--", icon: "Ruta", accent: "earth" },
+    {
+      label: "Precio promedio",
+      value: dashboard ? `$${dashboard.avg_reference_price.toLocaleString("es-CO")} COP/kg` : "--",
+      icon: "Mercado",
+      accent: "green",
+    },
+    {
+      label: "Ingreso directo estimado",
+      value: dashboard ? `$${dashboard.estimated_direct_revenue_cop.toLocaleString("es-CO")} COP` : "--",
+      icon: "Ingreso",
+      accent: "gold",
+    },
+    {
+      label: "Adopcion simulada",
+      value: dashboard ? `${dashboard.adoption_rate}%` : "--",
+      icon: "Impacto",
+      accent: "earth",
+    },
+  ];
+
   async function fetchJson(path, options = {}) {
     const response = await fetch(`${API_URL}${path}`, {
       headers: { "Content-Type": "application/json" },
@@ -117,6 +141,7 @@ function App() {
       setActiveRole("producer");
       setActiveProducerId(String(producer.id));
       setAccessMode("access");
+      setCurrentView("portal");
       await loadData();
       setMessage("Productor registrado y acceso habilitado.");
     } catch (error) {
@@ -138,6 +163,7 @@ function App() {
       setActiveRole("buyer");
       setActiveBuyerId(String(buyer.id));
       setAccessMode("access");
+      setCurrentView("portal");
       await loadData();
       setMessage("Comprador registrado y acceso habilitado.");
     } catch (error) {
@@ -215,12 +241,8 @@ function App() {
   }
 
   function enterPortal() {
-    if (activeRole === "producer" && activeProducerId) {
-      setCurrentView("portal");
-    }
-    if (activeRole === "buyer" && activeBuyerId) {
-      setCurrentView("portal");
-    }
+    if (activeRole === "producer" && activeProducerId) setCurrentView("portal");
+    if (activeRole === "buyer" && activeBuyerId) setCurrentView("portal");
   }
 
   return (
@@ -241,6 +263,26 @@ function App() {
                 <span>Portal productor</span>
                 <span>Portal comprador</span>
                 <span>Una sola plataforma publica</span>
+              </div>
+              <div className="product-strip">
+                <div className="product-badge">
+                  <strong>Producto demo</strong>
+                  <span>Inventario predictivo, preventa y trazabilidad</span>
+                </div>
+                <div className="mini-stats">
+                  <div>
+                    <strong>2</strong>
+                    <span>roles</span>
+                  </div>
+                  <div>
+                    <strong>1</strong>
+                    <span>URL publica</span>
+                  </div>
+                  <div>
+                    <strong>3</strong>
+                    <span>modulos clave</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -291,9 +333,7 @@ function App() {
             </button>
             <p className="eyebrow">Acceso por rol</p>
             <h2>
-              {activeRole === "producer"
-                ? "Bienvenido al portal productor"
-                : "Bienvenido al portal comprador"}
+              {activeRole === "producer" ? "Bienvenido al portal productor" : "Bienvenido al portal comprador"}
             </h2>
             <p>
               {activeRole === "producer"
@@ -314,35 +354,19 @@ function App() {
 
           <div className="access-panel auth-panel">
             <div className="role-tabs">
-              <button
-                className={activeRole === "producer" ? "active" : ""}
-                onClick={() => setActiveRole("producer")}
-                type="button"
-              >
+              <button className={activeRole === "producer" ? "active" : ""} onClick={() => setActiveRole("producer")} type="button">
                 Productor
               </button>
-              <button
-                className={activeRole === "buyer" ? "active" : ""}
-                onClick={() => setActiveRole("buyer")}
-                type="button"
-              >
+              <button className={activeRole === "buyer" ? "active" : ""} onClick={() => setActiveRole("buyer")} type="button">
                 Comprador
               </button>
             </div>
 
             <div className="access-toggle">
-              <button
-                className={accessMode === "register" ? "active" : ""}
-                onClick={() => setAccessMode("register")}
-                type="button"
-              >
+              <button className={accessMode === "register" ? "active" : ""} onClick={() => setAccessMode("register")} type="button">
                 Crear cuenta
               </button>
-              <button
-                className={accessMode === "access" ? "active" : ""}
-                onClick={() => setAccessMode("access")}
-                type="button"
-              >
+              <button className={accessMode === "access" ? "active" : ""} onClick={() => setAccessMode("access")} type="button">
                 Iniciar sesion
               </button>
             </div>
@@ -350,46 +374,12 @@ function App() {
             {accessMode === "register" && activeRole === "producer" ? (
               <form className="form-grid compact" onSubmit={handleProducerRegistration}>
                 <h2>Registrar productor</h2>
-                <input
-                  placeholder="Nombre del productor"
-                  value={producerForm.name}
-                  onChange={(event) => setProducerForm({ ...producerForm, name: event.target.value })}
-                  required
-                />
-                <input
-                  placeholder="Telefono"
-                  value={producerForm.phone}
-                  onChange={(event) => setProducerForm({ ...producerForm, phone: event.target.value })}
-                  required
-                />
-                <input
-                  placeholder="Municipio"
-                  value={producerForm.municipality}
-                  onChange={(event) => setProducerForm({ ...producerForm, municipality: event.target.value })}
-                  required
-                />
-                <input
-                  placeholder="Tipo de cultivo"
-                  value={producerForm.crop_type}
-                  onChange={(event) => setProducerForm({ ...producerForm, crop_type: event.target.value })}
-                  required
-                />
-                <input
-                  placeholder="Tamano de parcela (ha)"
-                  type="number"
-                  step="0.1"
-                  value={producerForm.parcel_size_hectares}
-                  onChange={(event) =>
-                    setProducerForm({ ...producerForm, parcel_size_hectares: event.target.value })
-                  }
-                  required
-                />
-                <select
-                  value={producerForm.notification_channel}
-                  onChange={(event) =>
-                    setProducerForm({ ...producerForm, notification_channel: event.target.value })
-                  }
-                >
+                <input placeholder="Nombre del productor" value={producerForm.name} onChange={(event) => setProducerForm({ ...producerForm, name: event.target.value })} required />
+                <input placeholder="Telefono" value={producerForm.phone} onChange={(event) => setProducerForm({ ...producerForm, phone: event.target.value })} required />
+                <input placeholder="Municipio" value={producerForm.municipality} onChange={(event) => setProducerForm({ ...producerForm, municipality: event.target.value })} required />
+                <input placeholder="Tipo de cultivo" value={producerForm.crop_type} onChange={(event) => setProducerForm({ ...producerForm, crop_type: event.target.value })} required />
+                <input placeholder="Tamano de parcela (ha)" type="number" step="0.1" value={producerForm.parcel_size_hectares} onChange={(event) => setProducerForm({ ...producerForm, parcel_size_hectares: event.target.value })} required />
+                <select value={producerForm.notification_channel} onChange={(event) => setProducerForm({ ...producerForm, notification_channel: event.target.value })}>
                   <option value="SMS">SMS</option>
                   <option value="PUSH">Push</option>
                   <option value="BOTH">Ambos</option>
@@ -401,31 +391,10 @@ function App() {
             {accessMode === "register" && activeRole === "buyer" ? (
               <form className="form-grid compact" onSubmit={handleBuyerRegistration}>
                 <h2>Registrar comprador</h2>
-                <input
-                  placeholder="Empresa compradora"
-                  value={buyerForm.company_name}
-                  onChange={(event) => setBuyerForm({ ...buyerForm, company_name: event.target.value })}
-                  required
-                />
-                <input
-                  placeholder="Contacto"
-                  value={buyerForm.contact_name}
-                  onChange={(event) => setBuyerForm({ ...buyerForm, contact_name: event.target.value })}
-                  required
-                />
-                <input
-                  placeholder="Zona logistica"
-                  value={buyerForm.zone}
-                  onChange={(event) => setBuyerForm({ ...buyerForm, zone: event.target.value })}
-                  required
-                />
-                <input
-                  placeholder="Demanda esperada (kg)"
-                  type="number"
-                  value={buyerForm.expected_demand_kg}
-                  onChange={(event) => setBuyerForm({ ...buyerForm, expected_demand_kg: event.target.value })}
-                  required
-                />
+                <input placeholder="Empresa compradora" value={buyerForm.company_name} onChange={(event) => setBuyerForm({ ...buyerForm, company_name: event.target.value })} required />
+                <input placeholder="Contacto" value={buyerForm.contact_name} onChange={(event) => setBuyerForm({ ...buyerForm, contact_name: event.target.value })} required />
+                <input placeholder="Zona logistica" value={buyerForm.zone} onChange={(event) => setBuyerForm({ ...buyerForm, zone: event.target.value })} required />
+                <input placeholder="Demanda esperada (kg)" type="number" value={buyerForm.expected_demand_kg} onChange={(event) => setBuyerForm({ ...buyerForm, expected_demand_kg: event.target.value })} required />
                 <button type="submit">Crear cuenta y entrar</button>
               </form>
             ) : null}
@@ -434,13 +403,7 @@ function App() {
               <div className="access-card">
                 <h2>Iniciar sesion productor</h2>
                 <p>Selecciona el productor para abrir su interfaz personalizada.</p>
-                <select
-                  value={activeProducerId}
-                  onChange={(event) => {
-                    setActiveProducerId(event.target.value);
-                    setOfferForm({ ...initialOffer, producer_id: event.target.value });
-                  }}
-                >
+                <select value={activeProducerId} onChange={(event) => { setActiveProducerId(event.target.value); setOfferForm({ ...initialOffer, producer_id: event.target.value }); }}>
                   <option value="">Seleccione productor</option>
                   {producers.map((producer) => (
                     <option key={producer.id} value={producer.id}>
@@ -464,13 +427,7 @@ function App() {
               <div className="access-card">
                 <h2>Iniciar sesion comprador</h2>
                 <p>Selecciona la empresa compradora para abrir su panel comercial.</p>
-                <select
-                  value={activeBuyerId}
-                  onChange={(event) => {
-                    setActiveBuyerId(event.target.value);
-                    setPreorderForm({ ...initialPreorder, buyer_id: event.target.value });
-                  }}
-                >
+                <select value={activeBuyerId} onChange={(event) => { setActiveBuyerId(event.target.value); setPreorderForm({ ...initialPreorder, buyer_id: event.target.value }); }}>
                   <option value="">Seleccione comprador</option>
                   {buyers.map((buyer) => (
                     <option key={buyer.id} value={buyer.id}>
@@ -495,37 +452,49 @@ function App() {
 
       {message ? <div className="banner">{message}</div> : null}
 
-      <section className="metrics-grid">
-        {[
-          ["Productores activos", dashboard?.total_producers ?? "--"],
-          ["Ofertas publicadas", dashboard?.active_offers ?? "--"],
-          ["Preventas", dashboard?.total_preorders ?? "--"],
-          [
-            "Precio promedio",
-            dashboard ? `$${dashboard.avg_reference_price.toLocaleString("es-CO")} COP/kg` : "--",
-          ],
-          [
-            "Ingreso directo estimado",
-            dashboard ? `$${dashboard.estimated_direct_revenue_cop.toLocaleString("es-CO")} COP` : "--",
-          ],
-          ["Adopcion simulada", dashboard ? `${dashboard.adoption_rate}%` : "--"],
-        ].map(([label, value]) => (
-          <article key={label} className="metric-card">
-            <span>{label}</span>
-            <strong>{value}</strong>
-          </article>
-        ))}
-      </section>
+      {currentView === "portal" ? (
+        <>
+          <section className="metrics-grid">
+            {metricCards.map((metric) => (
+              <article key={metric.label} className={`metric-card metric-${metric.accent}`}>
+                <div className="metric-topline">
+                  <span className="metric-icon">{metric.icon}</span>
+                  <small>{metric.label}</small>
+                </div>
+                <strong>{metric.value}</strong>
+                <p>Indicador visible para la toma de decisiones del portal.</p>
+              </article>
+            ))}
+          </section>
+
+          <section className="story-band">
+            <div className="story-copy">
+              <p className="eyebrow">Visor operativo</p>
+              <h2>Una vista pensada para campo y comercio, sin ruido innecesario.</h2>
+            </div>
+            <div className="story-icons">
+              <div className="story-icon-card">
+                <span>Mapa</span>
+                <strong>Oferta localizada</strong>
+              </div>
+              <div className="story-icon-card">
+                <span>Precio</span>
+                <strong>Mercado visible</strong>
+              </div>
+              <div className="story-icon-card">
+                <span>Rastro</span>
+                <strong>Trazabilidad clara</strong>
+              </div>
+            </div>
+          </section>
+        </>
+      ) : null}
 
       {currentView === "portal" && loggedIn ? (
         <section className="workspace-header">
           <div>
             <p className="eyebrow">Sesion activa</p>
-            <h2>
-              {activeRole === "producer"
-                ? `Panel del productor: ${activeProducer?.name ?? ""}`
-                : `Panel del comprador: ${activeBuyer?.company_name ?? ""}`}
-            </h2>
+            <h2>{activeRole === "producer" ? `Panel del productor: ${activeProducer?.name ?? ""}` : `Panel del comprador: ${activeBuyer?.company_name ?? ""}`}</h2>
             <p>
               {activeRole === "producer"
                 ? "Aqui puedes publicar oferta, consultar tus cosechas y seguir la trazabilidad."
@@ -546,22 +515,10 @@ function App() {
               <p>Datos del productor autenticado dentro del demo.</p>
             </div>
             <div className="profile-stat-grid">
-              <div>
-                <span>Cultivo principal</span>
-                <strong>{activeProducer?.crop_type}</strong>
-              </div>
-              <div>
-                <span>Municipio</span>
-                <strong>{activeProducer?.municipality}</strong>
-              </div>
-              <div>
-                <span>Parcela</span>
-                <strong>{activeProducer?.parcel_size_hectares} ha</strong>
-              </div>
-              <div>
-                <span>Canal</span>
-                <strong>{activeProducer?.notification_channel}</strong>
-              </div>
+              <div><span>Cultivo principal</span><strong>{activeProducer?.crop_type}</strong></div>
+              <div><span>Municipio</span><strong>{activeProducer?.municipality}</strong></div>
+              <div><span>Parcela</span><strong>{activeProducer?.parcel_size_hectares} ha</strong></div>
+              <div><span>Canal</span><strong>{activeProducer?.notification_channel}</strong></div>
             </div>
           </section>
 
@@ -571,33 +528,10 @@ function App() {
               <p>Registra la cosecha antes de la recoleccion para negociar en origen.</p>
             </div>
             <form className="form-grid" onSubmit={handleOfferSubmit}>
-              <input
-                placeholder="Producto"
-                value={offerForm.product_name}
-                onChange={(event) => setOfferForm({ ...offerForm, product_name: event.target.value })}
-                required
-              />
-              <input
-                placeholder="Volumen estimado (kg)"
-                type="number"
-                value={offerForm.estimated_volume_kg}
-                onChange={(event) =>
-                  setOfferForm({ ...offerForm, estimated_volume_kg: event.target.value })
-                }
-                required
-              />
-              <input
-                type="date"
-                value={offerForm.harvest_date}
-                onChange={(event) => setOfferForm({ ...offerForm, harvest_date: event.target.value })}
-                required
-              />
-              <input
-                placeholder="Ubicacion o vereda"
-                value={offerForm.location}
-                onChange={(event) => setOfferForm({ ...offerForm, location: event.target.value })}
-                required
-              />
+              <input placeholder="Producto" value={offerForm.product_name} onChange={(event) => setOfferForm({ ...offerForm, product_name: event.target.value })} required />
+              <input placeholder="Volumen estimado (kg)" type="number" value={offerForm.estimated_volume_kg} onChange={(event) => setOfferForm({ ...offerForm, estimated_volume_kg: event.target.value })} required />
+              <input type="date" value={offerForm.harvest_date} onChange={(event) => setOfferForm({ ...offerForm, harvest_date: event.target.value })} required />
+              <input placeholder="Ubicacion o vereda" value={offerForm.location} onChange={(event) => setOfferForm({ ...offerForm, location: event.target.value })} required />
               <button type="submit">Publicar oferta</button>
             </form>
           </section>
@@ -608,18 +542,14 @@ function App() {
               <p>Resumen de las ofertas asociadas al productor que ingreso al sistema.</p>
             </div>
             <div className="offer-list">
-              {producerOffers.length ? (
-                producerOffers.map((offer) => (
-                  <div key={offer.id} className="offer-card">
-                    <h3>{offer.product_name}</h3>
-                    <p>{offer.estimated_volume_kg} kg estimados</p>
-                    <p>Cosecha prevista: {offer.harvest_date}</p>
-                    <span>{offer.location}</span>
-                  </div>
-                ))
-              ) : (
-                <div className="empty-card">Todavia no hay ofertas publicadas para este productor.</div>
-              )}
+              {producerOffers.length ? producerOffers.map((offer) => (
+                <div key={offer.id} className="offer-card">
+                  <h3>{offer.product_name}</h3>
+                  <p>{offer.estimated_volume_kg} kg estimados</p>
+                  <p>Cosecha prevista: {offer.harvest_date}</p>
+                  <span>{offer.location}</span>
+                </div>
+              )) : <div className="empty-card">Todavia no hay ofertas publicadas para este productor.</div>}
             </div>
           </section>
 
@@ -629,11 +559,7 @@ function App() {
               <p>Revisa productor, comprador, lote y ruta usando el codigo de la orden.</p>
             </div>
             <form className="trace-form" onSubmit={searchTraceability}>
-              <input
-                value={traceabilityCode}
-                onChange={(event) => setTraceabilityCode(event.target.value)}
-                placeholder="Codigo de trazabilidad"
-              />
+              <input value={traceabilityCode} onChange={(event) => setTraceabilityCode(event.target.value)} placeholder="Codigo de trazabilidad" />
               <button type="submit">Buscar</button>
             </form>
             {traceability ? (
@@ -646,9 +572,7 @@ function App() {
                 <p><strong>Ruta:</strong> {traceability.pickup_route}</p>
                 <p><strong>Estado:</strong> {traceability.status}</p>
               </div>
-            ) : (
-              <div className="trace-card empty">Consulta una orden para ver su historial logistico.</div>
-            )}
+            ) : <div className="trace-card empty">Consulta una orden para ver su historial logistico.</div>}
           </section>
         </main>
       ) : null}
@@ -661,22 +585,10 @@ function App() {
               <p>Panel comercial con foco en demanda, oferta disponible y preventa.</p>
             </div>
             <div className="profile-stat-grid">
-              <div>
-                <span>Empresa</span>
-                <strong>{activeBuyer?.company_name}</strong>
-              </div>
-              <div>
-                <span>Zona</span>
-                <strong>{activeBuyer?.zone}</strong>
-              </div>
-              <div>
-                <span>Contacto</span>
-                <strong>{activeBuyer?.contact_name}</strong>
-              </div>
-              <div>
-                <span>Demanda</span>
-                <strong>{activeBuyer?.expected_demand_kg} kg</strong>
-              </div>
+              <div><span>Empresa</span><strong>{activeBuyer?.company_name}</strong></div>
+              <div><span>Zona</span><strong>{activeBuyer?.zone}</strong></div>
+              <div><span>Contacto</span><strong>{activeBuyer?.contact_name}</strong></div>
+              <div><span>Demanda</span><strong>{activeBuyer?.expected_demand_kg} kg</strong></div>
             </div>
           </section>
 
@@ -715,11 +627,7 @@ function App() {
               <p>Reserva oferta, define precio pactado y registra la ruta de recogida.</p>
             </div>
             <form className="form-grid" onSubmit={handlePreorderSubmit}>
-              <select
-                value={preorderForm.offer_id}
-                onChange={(event) => setPreorderForm({ ...preorderForm, offer_id: event.target.value })}
-                required
-              >
+              <select value={preorderForm.offer_id} onChange={(event) => setPreorderForm({ ...preorderForm, offer_id: event.target.value })} required>
                 <option value="">Seleccione oferta</option>
                 {offers.map((offer) => (
                   <option key={offer.id} value={offer.id}>
@@ -727,32 +635,9 @@ function App() {
                   </option>
                 ))}
               </select>
-              <input
-                placeholder="Precio pactado por kg"
-                type="number"
-                value={preorderForm.agreed_price_per_kg}
-                onChange={(event) =>
-                  setPreorderForm({ ...preorderForm, agreed_price_per_kg: event.target.value })
-                }
-                required
-              />
-              <input
-                placeholder="Volumen reservado (kg)"
-                type="number"
-                value={preorderForm.reserved_volume_kg}
-                onChange={(event) =>
-                  setPreorderForm({ ...preorderForm, reserved_volume_kg: event.target.value })
-                }
-                required
-              />
-              <input
-                placeholder="Ruta de recogida"
-                value={preorderForm.pickup_route}
-                onChange={(event) =>
-                  setPreorderForm({ ...preorderForm, pickup_route: event.target.value })
-                }
-                required
-              />
+              <input placeholder="Precio pactado por kg" type="number" value={preorderForm.agreed_price_per_kg} onChange={(event) => setPreorderForm({ ...preorderForm, agreed_price_per_kg: event.target.value })} required />
+              <input placeholder="Volumen reservado (kg)" type="number" value={preorderForm.reserved_volume_kg} onChange={(event) => setPreorderForm({ ...preorderForm, reserved_volume_kg: event.target.value })} required />
+              <input placeholder="Ruta de recogida" value={preorderForm.pickup_route} onChange={(event) => setPreorderForm({ ...preorderForm, pickup_route: event.target.value })} required />
               <button type="submit">Confirmar preventa</button>
             </form>
           </section>
@@ -780,19 +665,15 @@ function App() {
               <p>Seguimiento a las reservas generadas por la empresa compradora activa.</p>
             </div>
             <div className="offer-list">
-              {buyerPreorders.length ? (
-                buyerPreorders.map((preorder) => (
-                  <div key={preorder.id} className="offer-card trace-offer">
-                    <h3>{preorder.traceability_code}</h3>
-                    <p>Oferta: {offers.find((offer) => offer.id === preorder.offer_id)?.product_name ?? "Oferta"}</p>
-                    <p>Volumen reservado: {preorder.reserved_volume_kg} kg</p>
-                    <p>Precio pactado: ${preorder.agreed_price_per_kg.toLocaleString("es-CO")} COP/kg</p>
-                    <span>{preorder.pickup_route}</span>
-                  </div>
-                ))
-              ) : (
-                <div className="empty-card">Todavia no hay preventas asociadas a este comprador.</div>
-              )}
+              {buyerPreorders.length ? buyerPreorders.map((preorder) => (
+                <div key={preorder.id} className="offer-card trace-offer">
+                  <h3>{preorder.traceability_code}</h3>
+                  <p>Oferta: {offers.find((offer) => offer.id === preorder.offer_id)?.product_name ?? "Oferta"}</p>
+                  <p>Volumen reservado: {preorder.reserved_volume_kg} kg</p>
+                  <p>Precio pactado: ${preorder.agreed_price_per_kg.toLocaleString("es-CO")} COP/kg</p>
+                  <span>{preorder.pickup_route}</span>
+                </div>
+              )) : <div className="empty-card">Todavia no hay preventas asociadas a este comprador.</div>}
             </div>
           </section>
         </main>

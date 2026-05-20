@@ -22,6 +22,8 @@ body {
   background:
     radial-gradient(circle at 10% 10%, rgba(214, 139, 42, 0.18), transparent 24%),
     radial-gradient(circle at 85% 14%, rgba(47, 125, 50, 0.12), transparent 22%),
+    linear-gradient(125deg, rgba(255, 255, 255, 0.4), transparent 35%),
+    linear-gradient(180deg, rgba(96, 75, 48, 0.03), transparent 34%),
     linear-gradient(180deg, #efe7dc 0%, #f8f4ee 42%, #f1ebe1 100%);
 }
 
@@ -77,6 +79,51 @@ select {
   border: 1px solid rgba(255, 255, 255, 0.44);
   box-shadow: var(--shadow);
   backdrop-filter: blur(14px);
+}
+
+.product-strip {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.product-badge,
+.mini-stats {
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.78);
+  padding: 16px 18px;
+}
+
+.product-badge {
+  display: grid;
+  gap: 6px;
+}
+
+.product-badge span {
+  color: var(--muted);
+}
+
+.mini-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.mini-stats div {
+  text-align: center;
+}
+
+.mini-stats strong {
+  display: block;
+  font-family: "Fraunces", serif;
+  font-size: 1.45rem;
+}
+
+.mini-stats span {
+  color: var(--muted);
+  font-size: 0.82rem;
 }
 
 .landing-visual-card {
@@ -347,17 +394,74 @@ h1 {
 
 .metric-card {
   padding: 18px;
+  position: relative;
+  overflow: hidden;
 }
 
-.metric-card span {
-  display: block;
+.metric-card::after {
+  content: "";
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  top: -18px;
+  right: -18px;
+  border-radius: 50%;
+  opacity: 0.2;
+}
+
+.metric-green::after {
+  background: rgba(47, 125, 50, 0.35);
+}
+
+.metric-gold::after {
+  background: rgba(214, 139, 42, 0.35);
+}
+
+.metric-earth::after {
+  background: rgba(110, 82, 48, 0.26);
+}
+
+.metric-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.metric-topline small {
   color: var(--muted);
-  font-size: 0.88rem;
-  margin-bottom: 10px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.metric-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 74px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.74);
+  font-size: 0.76rem;
+  font-weight: 800;
 }
 
 .metric-card strong {
-  font-size: 1.15rem;
+  display: block;
+  font-family: "Fraunces", serif;
+  font-size: 1.42rem;
+  line-height: 1.05;
+  max-width: 11ch;
+}
+
+.metric-card p {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
 }
 
 .workspace-header {
@@ -371,6 +475,44 @@ h1 {
 
 .workspace-header.locked {
   background: rgba(255, 250, 242, 0.78);
+}
+
+.story-band {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 18px;
+  padding: 22px 24px;
+  border-radius: 28px;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(135deg, rgba(255, 252, 247, 0.9), rgba(239, 247, 236, 0.72)),
+    var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.story-icons {
+  display: flex;
+  gap: 12px;
+}
+
+.story-icon-card {
+  min-width: 145px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid var(--line);
+}
+
+.story-icon-card span {
+  display: block;
+  color: var(--accent);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+  font-weight: 800;
 }
 
 .content-grid {
@@ -540,7 +682,9 @@ th {
   .hero-split,
   .landing-grid,
   .auth-shell,
-  .metrics-grid {
+  .metrics-grid,
+  .product-strip,
+  .story-band {
     grid-template-columns: 1fr;
   }
 
@@ -550,6 +694,10 @@ th {
 
   .photo-stack {
     min-height: 320px;
+  }
+
+  .story-icons {
+    flex-direction: column;
   }
 }
 
@@ -579,6 +727,10 @@ th {
 
   .landing-actions {
     flex-direction: column;
+  }
+
+  .mini-stats {
+    grid-template-columns: 1fr;
   }
 
   .photo-card.large,
